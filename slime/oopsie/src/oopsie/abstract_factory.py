@@ -1,6 +1,61 @@
 from abc import ABC, abstractmethod
 
+class Repository(ABC):
+    @property
+    @abstractmethod
+    def platform(self):
+        """"""
+
+class GithubRepository(Repository):
+    @property
+    def platform(self):
+        return "GITHUB"
+
+class BitbucketRepository(Repository):
+    @property
+    def platform(self):
+        return "BITBUCKET"
+
+
+class RepositoryTeam(ABC):
+    @property
+    @abstractmethod
+    def platform(self):
+        """"""
+class GithubRepositoryTeam(RepositoryTeam):
+    @property
+    def platform(self):
+        return "GITHUB"
+
+class BitbucketRepositoryTeam(RepositoryTeam):
+    @property
+    def platform(self):
+        return "BITBUCKET"
+
+
+class RepositoryRuleset(ABC):
+    @property
+    @abstractmethod
+    def platform(self):
+        """"""
+
+class GithubRepositoryRuleset(RepositoryRuleset):
+    @property
+    def platform(self):
+        return "GITHUB"
+
+class BitbucketRepositoryRuleset(RepositoryRuleset):
+    @property
+    def platform(self):
+        return "BITBUCKET"
+
+
 class AbstractRepositoryFactory(ABC):
+    """
+    Anybody who wants to run creation commands against a Repository
+    can do so via this interface
+
+    """
     @abstractmethod
     def create_team(self):
         """"""
@@ -14,71 +69,51 @@ class AbstractRepositoryFactory(ABC):
         """"""
 
 class ConcreteGithubFactory(AbstractRepositoryFactory):
-    def create_team(self, repository):
+    def create_team(self):
         """"""
         print("Generating a Repo Team on Github")
+        return GithubRepositoryTeam()
 
-    def create_repo(self, repository):
+    def create_repo(self):
         """"""
         print("Generating a Repo on Github")
+        return GithubRepository()
 
-    def create_ruleset(self, repository):
+    def create_ruleset(self):
         """"""
         print("Generating a Repo Ruleset on Github")
+        return GithubRepositoryRuleset()
 
 class ConcreteBitbucketRepository(AbstractRepositoryFactory):
-    def create_team(self, repository):
+    def create_team(self):
         """"""
         print("Generating a Repo Team on Bitbucket")
+        return BitbucketRepositoryTeam()
 
-    def create_repo(self, repository):
+    def create_repo(self):
         """"""
         print("Generating a Repo on Bitbucket")
+        return BitbucketRepository()
 
-    def create_ruleset(self, repository):
+    def create_ruleset(self):
         """"""
         print("Generating a Repo Ruleset on Bitbucket")
+        return BitbucketRepositoryRuleset()
 
 
-
-class BaseComponent(ABC):
-    def __init__(self):
-        self._child_map = dict()
-        self._parent_map = dict()
-
-    @property
-    @abstractmethod
-    def key(self):
-        """"""
-
-    @abstractmethod
-    def init(self, recursive=False):
-        if recursive:
-            for component_key, component in self._child_map.items():
-                component.init()
-
-    def add(self, component:"BaseComponent"):
-        if isinstance(component, BaseComponent):
-            self._child_map[component.key] = component
-            component._parent_map[self.key] = self
-        else:
-            raise TypeError
-    
-
-class Domain(BaseComponent):
+class Domain:
     key = "domain"
 
     def init(self, recursive=False):
         print("Initializing Data Domain")
-        super().init(recursive)
+    
+    def init_repo(self, repo_factory:AbstractRepositoryFactory):
+        print("Domain is receiving a factory implementing the AbstractRepositoryFactory Interface")
+        print("It does not know which exact factory it is using, it does not need to")
+        repo = repo_factory.create_repo()
+        repo_team = repo_factory.create_team()
+        repo_ruleset = repo_factory.create_ruleset()
+        return repo, repo_team, repo_ruleset
 
-class Repository(BaseComponent):
-    key = "repository"
-    def __init__(self, platform:AbstractRepositoryFactory):
-        self._platform = platform
-        super().__init__()
-
-    def init(self, recursive=False):
-        self._platform.create_repo(self)
-        super().init(recursive)
+    
 
